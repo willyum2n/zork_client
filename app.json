@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "zork_client",
-    "slug": "zork_client",
-    "version": "1.0.0",
+    "name": "vork",
+    "icon": "./assets/zorkIcon.png",
+    "version": "0.1.0",
+    "slug": "vork",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -16,7 +16,13 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "android": {
+      "package": "com.willpowerware.vork",
+      "versionCode": 1
+    },
     "ios": {
+      "bundleIdentifier": "com.willpowerware.vork",
+      "buildNumber": "0.1.0",
       "supportsTablet": true
     },
     "web": {
