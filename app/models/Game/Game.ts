@@ -14,9 +14,22 @@ export const GameModel = types
   .actions((self) => ({
     addMessage(msg: GameMessageType) {
       console.log('[GameStore.addMessage]')
-      self.gameMessages.push(msg)
+      // We are adding items in reverse because we want to use a flatlist inverted to keep the 
+      // items growing upward, but still have them in the flatlist "in the correct order". To 
+      // achieve this, we will push all new items to the front of the array
+      self.gameMessages.unshift(msg)
+      // self.gameMessages.push(msg)
     }
-  })) // eslint-disable-line @typescript-eslint/no-unused-vars
+  }))
+  .actions((self) => ({
+    afterCreate() {
+      console.log(`[GameStore.afterCreate]`)
+      self.gameMessages.clear()
+    },
+    beforeDestroy() {
+      console.log(`[GameStore.beforeDestroy]`)
+    },
+  }))
 /**
  * Un-comment the following to omit model attributes from your snapshots (and from async storage).
  * Useful for sensitive data like passwords, or transitive state like whether a modal is open.

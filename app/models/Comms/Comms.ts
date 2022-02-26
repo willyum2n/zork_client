@@ -29,9 +29,12 @@ export const CommsModel = types
       self.zorkServerPort = port
     },
     sendMessage(messageType:MessageType, value: string) {
-      console.log(`[Comms.SendMessage] msg: messageType:${messageType}, value:${value}`)
+      const msg: GameMessageType = {"messageType":messageType, "fromServer":false, "value":value}
+      console.log(`[Comms.SendMessage] msg: ${msg}`)
+
       if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({"messageType":messageType, "value":value}))
+        ws.send(JSON.stringify(msg))
+        self.rootStore.game.addMessage(msg)
       } else {
         console.error("[Comms.sendMessage] WebSocket is not open!")
       }

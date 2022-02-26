@@ -13,6 +13,8 @@ export const GameMessageModel = types
   .model("GameMessage")
   .props({
     messageType: types.enumeration('MessageType', Object.values(MessageType)),
+    /** Indicates the direction of the message (From Server or from User) */
+    fromServer: types.optional(types.boolean, true),
     value: types.string,
   })
   .views((self) => ({})) // eslint-disable-line @typescript-eslint/no-unused-vars

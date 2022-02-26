@@ -1,5 +1,5 @@
-import React from "react"
-import { View, ViewStyle, TextStyle, SafeAreaView, TextInput } from "react-native"
+import React, { useEffect } from "react"
+import { View, ViewStyle, TextStyle, SafeAreaView, TextInput, StyleSheet } from "react-native"
 import { observer } from "mobx-react-lite"
 import { Button, Header, Screen, Text, Wallpaper } from "../../components"
 import { color, spacing, typography } from "../../theme"
@@ -72,6 +72,7 @@ export const WelcomeScreen = observer(function WelcomeScreen() {
   const {game, audio, comms} = useStores()
   // const navigation = useNavigation()
   // const nextScreen = () => navigation.navigate("demo")
+  const messageFlatList = React.useRef(null)
 
   const connectToServer = () => {
     comms.connect()
@@ -84,7 +85,6 @@ export const WelcomeScreen = observer(function WelcomeScreen() {
     Tts.speak("Hello. This is the voice you will hear")
   }
   const toggleVoice = () => {
-
     if (audio.isRunning) {
       console.log("[welcome-screen.toggleVoice] stopping voice capture")
       audio.interruptVoiceRecognition()
@@ -93,6 +93,10 @@ export const WelcomeScreen = observer(function WelcomeScreen() {
       audio.startVoiceRecognition()
     }
   }
+
+  React.useEffect(() => {
+    console.log(`[welcome-screen.useEffect #game.gameMessages] count:${game.gameMessages.length}`)
+  }, [game.gameMessages])
 
   return (
     <View testID="WelcomeScreen" style={FULL}>
@@ -120,7 +124,7 @@ export const WelcomeScreen = observer(function WelcomeScreen() {
           <Text>.</Text>
         </View>
         <View>
-          <Text style={TITLE}>{`audio.isAvailable: ${audio.isAvailable}`}</Text>
+          <Text style={TITLE}>{`msgCount: ${game.gameMessages.length}`}</Text>
         </View>
         <View>
           <Text style={TITLE}>{`audio.isRunning: ${audio.isRunning}`}</Text>
@@ -130,14 +134,31 @@ export const WelcomeScreen = observer(function WelcomeScreen() {
           <Text>.</Text>
         </View>
         <Text>Game Messages:</Text>
-        <FlatList
-          style={MESSAGES}
-          data={game.gameMessages}
-          renderItem={({ item }) => (
-            <Text style={{backgroundColor: item.messageType === MessageType.game ? color.background : color.dim}}>item.message</Text>
-          )}
-          inverted={true}
-        />
+
+        <View style={messageStyles.containerOuter}>
+          <FlatList
+            ref={messageFlatList}
+            onContentSizeChange={() => {
+              console.log(`[welcome-screen.flatlist.onContentSizeChange]`)
+              messageFlatList.current.scrollToEnd()
+            }}
+            showsVerticalScrollIndicator={true}
+            data={game.gameMessages}
+            inverted={true}
+            renderItem={({ item, index }) => {
+              return (
+                <>
+                <View style={item.fromServer ? messageStyles.msgFromServer : messageStyles.msgFromUser}>
+                  <Text style={messageStyles.msgText}>
+                    {item.fromServer ? "Zork" : "You"}: {item.value}
+                  </Text>
+                </View>
+                </>
+              )
+            }}
+          />
+        </View>
+
       </Screen>
       <SafeAreaView style={FOOTER}>
         <View style={BUTTON_BOX}>
@@ -173,4 +194,32 @@ export const WelcomeScreen = observer(function WelcomeScreen() {
       </SafeAreaView>
     </View>
   )
+})
+
+
+const messageStyles = StyleSheet.create({
+  containerOuter: {
+    borderRadius: 10,
+    borderWidth: 2,
+    padding: 10,
+  },
+  msgFromServer: {
+    backgroundColor: color.palette.orange,
+    borderRadius: 10,
+    borderWidth: 2,
+    marginTop: 5,
+    padding: 10,
+  },
+  msgFromUser: {
+    backgroundColor: color.palette.angry,
+    borderRadius: 10,
+    borderWidth: 2,
+    marginTop: 5,
+    padding: 10,
+  },
+  msgText: {
+    color: color.palette.black,
+    fontFamily: typography.primary,
+
+  },
 })
