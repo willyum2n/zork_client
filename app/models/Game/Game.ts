@@ -1,5 +1,5 @@
 import { Instance, SnapshotOut, types } from "mobx-state-tree"
-import { GameMessageModel, GameMessageType } from "../GameMessage/GameMessage"
+import { GameMessageModel, GameMessageType, MessageType } from "../GameMessage/GameMessage"
 
 /**
  * Model description here for TypeScript hints.
@@ -9,17 +9,21 @@ export const GameModel = types
   .props({
     gameMessages: types.optional(types.array(GameMessageModel), []),
   })
+  .volatile((self ) => ({
+    isConverational: true,
+  }))
   .views(() => ({
   })) // eslint-disable-line @typescript-eslint/no-unused-vars
   .actions((self) => ({
-    addMessage(msg: GameMessageType) {
-      console.log('[GameStore.addMessage]')
-      // We are adding items in reverse because we want to use a flatlist inverted to keep the 
-      // items growing upward, but still have them in the flatlist "in the correct order". To 
-      // achieve this, we will push all new items to the front of the array
-      self.gameMessages.unshift(msg)
-      // self.gameMessages.push(msg)
-    }
+    addGameMessage(msg: GameMessageType) {
+      console.log('[GameStore.addGameMessage]')
+      if (msg.messageType === MessageType.game) {
+        self.gameMessages.push(msg)
+      }
+    },
+    setIsConversational(enabled: boolean) {
+      self.isConverational = enabled
+    },
   }))
   .actions((self) => ({
     afterCreate() {

@@ -12,7 +12,7 @@ export const CommsModel = types
   .model("Comms")
   .extend(withRootStore)
   .props({
-    zorkServerAddress: types.optional(types.string, "localhost"),
+    zorkServerAddress: types.optional(types.string, "192.168.11.51"),
     zorkServerPort: types.optional(types.number, 8080),
     wsState: types.optional(types.string, "CLOSED"),
   })
@@ -34,7 +34,7 @@ export const CommsModel = types
 
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify(msg))
-        self.rootStore.game.addMessage(msg)
+        self.rootStore.game.addGameMessage(msg)
       } else {
         console.error("[Comms.sendMessage] WebSocket is not open!")
       }
@@ -43,8 +43,6 @@ export const CommsModel = types
   .actions((self) => ({
     onopen() {
       console.log('[Comms.onopen]')
-      // connection opened. We should send our ID to the server so it can restore our game
-      // self.sendMessage({messageType: MessageType.Config, message: self.applicationId})
     },
     async onmessage(e) {
       // a message was received.
@@ -58,13 +56,20 @@ export const CommsModel = types
         case MessageType.game:
           console.log('[Comms.onmessage] handle "game" message')
           // Push message to the main display          
-          self.rootStore.game.addMessage(msg)
+          self.rootStore.game.addGameMessage(msg)
           // Read message to user
           Tts.speak(msg.value)
           break
         case MessageType.admin:
           console.log('[Comms.onmessage] handle "admin" message')
-          // TODO:
+          switch (msg.value) {
+            case "how about a nice game of chess?":
+              // connection opened. We should send our ID to the server so it can restore our game
+              // self.sendMessage({messageType: MessageType.Config, value: self.applicationId})
+              self.sendMessage(MessageType.admin, "No. I want to play zork!")
+              break
+          }
+
           break
         case MessageType.config:
           console.log('[Comms.onmessage] handle "config" message')

@@ -21,7 +21,8 @@ export const VoiceAudioModel = types
   })
   .volatile(() => ({
     voiceIsAvailable: false,
-    isRunning: false,
+    isListening: false,
+    isTalking: false,
     lastVoiceCaptureResult: "",
   }))
   .views(() => ({
@@ -38,13 +39,13 @@ export const VoiceAudioModel = types
   .actions((self) => ({
     async startVoiceRecognition() {      
       console.log('[VoiceAudio.startVoiceRecognition] ')
-      self.isRunning = true
+      self.isListening = true
       await Voice.start('en-US')
     },
     /** stops voice recognition and throws away any results */
     async interruptVoiceRecognition() {
       console.log('[VoiceAudio.interruptVoiceRecognition]')
-      self.isRunning = false
+      self.isListening = false
       self.setResult("")  // Clear out the voice result 
       if (silenceTimeout) {
         clearTimeout(silenceTimeout)
@@ -54,7 +55,7 @@ export const VoiceAudioModel = types
     /** Stop voice recognition and process voice commands */
     async stopVoiceRecognition(){      
       console.log('[VoiceAudio.stopVoiceRecognition] ---------------------------------------------------------------')
-      self.isRunning = false
+      self.isListening = false
       if (silenceTimeout) {
         clearTimeout(silenceTimeout)
       }      
@@ -86,7 +87,7 @@ export const VoiceAudioModel = types
     onSpeechPartialResults(e: any) {
       console.log('[VoiceAudio.onSpeechPartialResults] ', e)
       // The Voice system can drop results even after we have stopped listening. If we are not running...exit
-      if (!self.isRunning) {
+      if (!self.isListening) {
         return
       }
       // We have heard the user's voice. Reset the silence timer so we can auto-commit after a certain amount of silence
@@ -98,7 +99,7 @@ export const VoiceAudioModel = types
     onSpeechResults(e: any) {
       console.log('[VoiceAudio.onSpeechResults] ', e)
       // The Voice system can drop results even after we have stopped listening. If we are not running...exit
-      if (!self.isRunning) {
+      if (!self.isListening) {
         return
       }
 
@@ -109,11 +110,13 @@ export const VoiceAudioModel = types
     },
     ttsStarted() {
       console.log('[VoiceAudio.ttsStarted]')
+      self.isTalking = true
       // Stop all Voice Recognition while TTS is speaking
       self.interruptVoiceRecognition()
     },
     ttsFinished() {
       console.log('[VoiceAudio.ttsFinished]')
+      self.isTalking = false
       // If we are set to Auto-Listen...the start recognition back up once the TTS is done speaking
       if (self.autoListenEnabled && self.voiceIsAvailable) {
         self.startVoiceRecognition()
