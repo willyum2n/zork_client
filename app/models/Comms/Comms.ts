@@ -5,6 +5,13 @@ import { GameMessageType, MessageType } from "../GameMessage/GameMessage";
 
 let ws:WebSocket
 
+export enum WebSocketState {
+  CONNECTING = 0,
+  OPEN = 1,
+  CLOSING = 2,
+  CLOSED = 3
+}
+
 /**
  * Model description here for TypeScript hints.
  */
@@ -12,20 +19,24 @@ export const CommsModel = types
   .model("Comms")
   .extend(withRootStore)
   .props({
-    zorkServerAddress: types.optional(types.string, "192.168.11.51"),
-    zorkServerPort: types.optional(types.number, 8080),
-    wsState: types.optional(types.string, "CLOSED"),
+    zorkServerHostname: types.optional(types.string, "vork.willpowerware.io"),
+    zorkServerPort: types.optional(types.number, 6910),
   })
   .views((self) => ({
     get zorkServerUri(){
-      return `ws://${self.zorkServerAddress}:${self.zorkServerPort}`
+      return `ws://${self.zorkServerHostname}:${self.zorkServerPort}`
+    },
+    get wsState() {
+      return ws?.readyState ?? WebSocketState.CLOSED
     },
   })) // eslint-disable-line @typescript-eslint/no-unused-vars
   .actions((self) => ({
-    setZorkServerAddress(addr: string) {
-      self.zorkServerAddress = addr
+    setZorkServerHostname(hostname: string) {
+      console.log(`[CommsStore.setZorkServerHostname] hostname:${hostname}`)
+      self.zorkServerHostname = hostname
     },
     setZorkServerPort(port: number) {
+      console.log(`[CommsStore.setZorkServerPort] port:${port}`)
       self.zorkServerPort = port
     },
     sendMessage(messageType:MessageType, value: string) {
@@ -88,6 +99,8 @@ export const CommsModel = types
     onclose(e) {
       // connection closed
       console.log('[Comms.ws.onerror] (code,reason)',e.code, e.reason);
+      self.rootStore.audio.interruptVoiceRecognition()
+      Tts.stop()
     },
     
   })) // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -101,6 +114,7 @@ export const CommsModel = types
       ws.onmessage = self.onmessage
     },
     disconnect(){
+      ws?.close()
       ws = null
     },
   }))

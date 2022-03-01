@@ -1,7 +1,7 @@
 import { Instance, SnapshotOut, types } from "mobx-state-tree"
 import Voice from '@react-native-voice/voice'
 import { withRootStore } from "../extensions/with-root-store";
-import { MessageType } from "..";
+import { CommsModel, MessageType, RootStoreModel, WebSocketState } from "..";
 import Tts from "react-native-tts";
 
 let silenceTimeout;
@@ -16,7 +16,7 @@ export const VoiceAudioModel = types
     /** The amount of time in silence that will cause an AutoComplete */
     silenceLength_ms: types.optional(types.number, 1500),
     /** Automatically turns the mic on after each Game Message from the server */
-    autoListenEnabled: types.optional(types.boolean, true),
+    isConversational: types.optional(types.boolean, true),
     voiceId: types.maybe(types.string),
   })
   .volatile(() => ({
@@ -34,13 +34,18 @@ export const VoiceAudioModel = types
     setResult(value: string) {
       console.log('[VoiceAudio.setResult] result=', value)
       self.lastVoiceCaptureResult = value
-    }
+    },
+    setIsConversational(enabled: boolean) {
+      self.isConversational = enabled
+    },
   }))
   .actions((self) => ({
     async startVoiceRecognition() {      
       console.log('[VoiceAudio.startVoiceRecognition] ')
-      self.isListening = true
-      await Voice.start('en-US')
+      if (self.rootStore.comms.wsState === WebSocketState.OPEN) {
+        self.isListening = true
+        await Voice.start('en-US')  
+      }
     },
     /** stops voice recognition and throws away any results */
     async interruptVoiceRecognition() {
@@ -115,10 +120,10 @@ export const VoiceAudioModel = types
       self.interruptVoiceRecognition()
     },
     ttsFinished() {
-      console.log('[VoiceAudio.ttsFinished]')
+      console.log(`[VoiceAudio.ttsFinished] isConversational=${self.isConversational}, voiceIsAvailable=${self.voiceIsAvailable}`)
       self.isTalking = false
       // If we are set to Auto-Listen...the start recognition back up once the TTS is done speaking
-      if (self.autoListenEnabled && self.voiceIsAvailable) {
+      if (self.isConversational && self.voiceIsAvailable) {
         self.startVoiceRecognition()
       }
     },

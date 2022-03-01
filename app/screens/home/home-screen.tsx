@@ -3,7 +3,7 @@ import { View, ViewStyle, TextStyle, SafeAreaView, StyleSheet, TouchableOpacity,
 import { observer } from "mobx-react-lite"
 import { Button, Header, Screen, Text, Wallpaper } from "../../components"
 import { color, spacing, typography } from "../../theme"
-import { useStores } from "../../models"
+import { useStores, WebSocketState } from "../../models"
 import Tts from "react-native-tts"
 import { FlatList } from "react-native-gesture-handler"
 import { Switch } from 'react-native-paper'
@@ -22,21 +22,15 @@ export const HomeScreen = observer(function HomeScreen() {
   const disconnectFromServer = () => {
     comms.disconnect()
   }
-  const ttsSpeak = () => {
-    // Tts.speak("Hello. This is react native text-to-speech. You'll notice that I can be heard by the speech-to-text engine")
-    Tts.speak("Hello. This is the voice you will hear")
-  }
-  const toggleVoice = () => {
-    if (audio.isListening) {
-      console.log("[HomeScreen.toggleVoice] stopping voice capture")
-      audio.interruptVoiceRecognition()
-    } else {
-      console.log("[HomeScreen.toggleVoice] starting voice capture")
-      audio.startVoiceRecognition()
-    }
+  const startVoiceRecognition = () => {
+    audio.startVoiceRecognition()
   }
   const toggleConversational = () => {
-    game.setIsConversational(!game.isConverational)
+    console.log(`[home-screen.toggleConversational]`)
+    audio.setIsConversational(!audio.isConversational)
+    if (!audio.isListening) {
+      audio.startVoiceRecognition()
+    }
   }
   const interruptPlayback = () => {
     Tts.stop()
@@ -52,23 +46,30 @@ export const HomeScreen = observer(function HomeScreen() {
       <Screen style={CONTAINER} preset="scroll" backgroundColor={color.transparent}>
         <Header headerText="POWERED BY WillPowerWare" style={HEADER} titleStyle={HEADER_TITLE} />
         
-        {/* CONVERSATIONAL SWITCH */}
+        {/* AUDIO CONFIG/STATUS/SWITCHES */}
         <View style={homeStyles.conversationalSwitchGroup}>
           <View style={homeStyles.conversationalSwitch}>
             <Text style={homeStyles.conversationalText}>Conversational</Text>
             <Switch
               color={color.palette.orangeDarker}
               onValueChange={toggleConversational}
-              value={game.isConverational}
+              value={audio.isConversational}
             />
           </View>
           <View>
             <Text style={homeStyles.listenLabel}>{`${audio.isListening ? "LISTENING" : ""}`}</Text>
           </View>
           {audio.isTalking ? 
-          <View style={homeStyles.interruptPlaybackButton}>
+          <View style={homeStyles.audioPlaybackButton}>
             <TouchableOpacity onPress={interruptPlayback}>
-              <Text style={homeStyles.interruptPlaybackButtonText}>Interrupt Playback</Text>
+              <Text style={homeStyles.audioButtonText}>Interrupt Playback</Text>
+            </TouchableOpacity>
+          </View>
+          : null}
+          { !audio.isTalking && !audio.isConversational && !audio.isListening && comms.wsState === WebSocketState.OPEN ? 
+          <View style={homeStyles.audioPlaybackButton}>
+            <TouchableOpacity onPress={startVoiceRecognition}>
+              <Text style={homeStyles.audioButtonText}>Start Listening</Text>
             </TouchableOpacity>
           </View>
           : null}
@@ -127,20 +128,6 @@ export const HomeScreen = observer(function HomeScreen() {
               onPress={disconnectFromServer}
             />
           </View>
-          <View style={BUTTON_COL}>
-            <Button
-                style={BUTTON_STYLE}
-                textStyle={BUTTON_TEXT}
-                text="TTS - Well hello there"
-                onPress={ttsSpeak}
-            />
-            <Button
-              style={BUTTON_STYLE}
-              textStyle={BUTTON_TEXT}
-              text={audio.isListening ? "LISTENING FOR SPEECH" : "SPEECH RECOGNITION OFF"}
-              onPress={toggleVoice}
-            />
-          </View>
         </View>
       </SafeAreaView>
     </View>
@@ -183,10 +170,10 @@ const TITLE: TextStyle = {
   textAlign: "center",
 }
 const BUTTON_BOX: ViewStyle = {
-  flexDirection: 'row',
+  flexDirection: 'column',
 }
 const BUTTON_COL: ViewStyle = {
-  flexDirection: 'column',
+  flexDirection: 'row',
 }
 const BUTTON_STYLE: ViewStyle = {
   marginTop: 10,
@@ -202,6 +189,17 @@ const BUTTON_TEXT: TextStyle = {
 const FOOTER: ViewStyle = { backgroundColor: "#20162D", marginBottom: 64 }
 
 const homeStyles = StyleSheet.create({
+  audioButtonText: {
+    color: color.palette.black,
+    margin: 10,
+    textAlign: 'center',
+  },
+  audioPlaybackButton: {
+    backgroundColor: color.palette.orange,
+    borderRadius: 5,
+    borderWidth: 2,
+    marginTop: 10,
+  },
   configButtonContainer: {
     position: 'absolute',
     right: 25,
@@ -238,17 +236,6 @@ const homeStyles = StyleSheet.create({
     color: color.palette.lightGrey,
     justifyContent: 'center',
     marginRight: 10 
-  },
-  interruptPlaybackButton: {
-    backgroundColor: color.palette.orange,
-    borderRadius: 5,
-    borderWidth: 2,
-    marginTop: 10,
-  },
-  interruptPlaybackButtonText: {
-    color: color.palette.black,
-    margin: 10,
-    textAlign: 'center',
   },
   listenLabel: {
     ...TEXT,

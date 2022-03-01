@@ -9,9 +9,6 @@ export const GameModel = types
   .props({
     gameMessages: types.optional(types.array(GameMessageModel), []),
   })
-  .volatile((self ) => ({
-    isConverational: true,
-  }))
   .views(() => ({
   })) // eslint-disable-line @typescript-eslint/no-unused-vars
   .actions((self) => ({
@@ -20,9 +17,6 @@ export const GameModel = types
       if (msg.messageType === MessageType.game) {
         self.gameMessages.push(msg)
       }
-    },
-    setIsConversational(enabled: boolean) {
-      self.isConverational = enabled
     },
   }))
   .actions((self) => ({
