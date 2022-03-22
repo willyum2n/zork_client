@@ -1,4 +1,4 @@
-package com.willpowerware.vork;
+package io.willpowerware.vork;
 
 import android.os.Bundle;
 

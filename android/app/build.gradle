@@ -132,7 +132,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'com.willpowerware.vork'
+        applicationId 'io.willpowerware.vork'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

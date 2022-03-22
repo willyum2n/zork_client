@@ -318,7 +318,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.willpowerware.vork;
+				PRODUCT_BUNDLE_IDENTIFIER = io.willpowerware.vork;
 				PRODUCT_NAME = vork;
 				SWIFT_OBJC_BRIDGING_HEADER = "vork/vork-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -345,7 +345,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.willpowerware.vork;
+				PRODUCT_BUNDLE_IDENTIFIER = io.willpowerware.vork;
 				PRODUCT_NAME = vork;
 				SWIFT_OBJC_BRIDGING_HEADER = "vork/vork-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

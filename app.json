@@ -17,11 +17,11 @@
       "**/*"
     ],
     "android": {
-      "package": "com.willpowerware.vork",
+      "package": "io.willpowerware.vork",
       "versionCode": 1
     },
     "ios": {
-      "bundleIdentifier": "com.willpowerware.vork",
+      "bundleIdentifier": "io.willpowerware.vork",
       "buildNumber": "0.1.0",
       "supportsTablet": true
     },
